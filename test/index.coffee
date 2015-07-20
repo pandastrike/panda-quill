@@ -35,16 +35,16 @@ Amen.describe "File system functions", (context) ->
   context.test "readdir", ->
     assert "lines.txt" in (yield readdir "test/data")
 
-  # context.test "ls", ->
-  #
-  #   context.test "lsR", ->
-  #     testDir = join __dirname, ".."
-  #     assert (join testDir, "test/data/lines.txt") in (yield lsR testDir)
+  context.test "ls", ->
 
-  # context.test "glob", ->
-  #   src = join __dirname, "..", "src"
-  #   assert ((join src, "index.litcoffee") in
-  #     (yield glob "**/*.litcoffee", src))
+    context.test "lsR", ->
+      testDir = join __dirname, ".."
+      assert (join testDir, "test/data/lines.txt") in (yield lsR testDir)
+
+  context.test "glob", ->
+    src = join __dirname, "..", "src"
+    assert ((join src, "index.litcoffee") in
+      (yield glob "**/*.litcoffee", src))
 
   context.test "chdir", ->
     src = join __dirname, "..", "src"

@@ -1,9 +1,10 @@
 # File System Functions
 
-    {dirname} = require "path"
+    {join, dirname} = require "path"
     {curry, binary} = require "fairmont-core"
     {async} = require "fairmont-helpers"
     {Method} = require "fairmont-multimethods"
+    {flatten} = require "fairmont-reactive"
     {liftAll} = require "when/node"
     FS = (liftAll require "fs")
     {Minimatch} = require "minimatch"
@@ -72,30 +73,25 @@ Get the contents of a directory as an array of pathnames.
 
 Recursively get the contents of a directory as an array.
 
-    lsR = lsr = ->
-    # {flatten} = require "./iterator"
-    # {join} = require "path"
-    # lsR = lsr = async (path, visited = []) ->
-    #   for childPath in (yield ls path)
-    #     if !(childPath in visited)
-    #       info = yield FS.lstat childPath
-    #       if info.isDirectory()
-    #         yield lsR childPath, visited
-    #       else
-    #         visited.push childPath
-    #   visited
+    lsR = lsr = async (path, visited = []) ->
+      for childPath in (yield ls path)
+        if !(childPath in visited)
+          info = yield FS.lstat childPath
+          if info.isDirectory()
+            yield lsR childPath, visited
+          else
+            visited.push childPath
+      visited
 
 ## glob
 
 Glob a directory.
 
-    glob = ->
-
-    # glob = async (pattern, path) ->
-    #   minimatch = new Minimatch pattern
-    #   match = (path) ->
-    #     minimatch.match path
-    #   _path for _path in (yield lsR path) when match _path
+    glob = async (pattern, path) ->
+      minimatch = new Minimatch pattern
+      match = (path) ->
+        minimatch.match path
+      _path for _path in (yield lsR path) when match _path
 
 ## write
 
