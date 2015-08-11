@@ -43,15 +43,15 @@ Amen.describe "File system functions", (context) ->
 
   context.test "glob", ->
     src = join __dirname, "..", "src"
-    assert ((join src, "index.litcoffee") in
-      (yield glob "**/*.litcoffee", src))
+    assert ((join src, "index.coffee") in
+      (yield glob "**/*.coffee", src))
 
   context.test "chdir", ->
     src = join __dirname, "..", "src"
     cwd = process.cwd()
     chdir src, ->
       fs = require "fs"
-      assert (fs.statSync "index.litcoffee").size?
+      assert (fs.statSync "index.coffee").size?
     assert cwd == process.cwd()
 
   context.test "rm"
