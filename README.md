@@ -1,6 +1,6 @@
 # Fairmont-Filesystem
 
-Fairmont-Syste is a JavaScript library providing access to the Node filesystem API in a functional style.
+Fairmont-System is a JavaScript library providing access to the Node filesystem API in a functional style.
 It's part of the [Fairmont][] library.
 You can use it by itself, or simply as part of the [Fairmont][] library.
 
