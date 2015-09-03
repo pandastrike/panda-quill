@@ -4,7 +4,9 @@
 {Method} = require "fairmont-multimethods"
 {flatten} = require "fairmont-reactive"
 {liftAll} = require "when/node"
+{promise} = require "when"
 FS = (liftAll require "fs")
+fs = require "fs"
 {Minimatch} = require "minimatch"
 
 stat = (path) -> FS.stat path
@@ -73,7 +75,7 @@ Method.define chdir, String, Function, (path, f) ->
   f()
   restore()
 
-rm = async (path) -> FS.unlink path
+rm = (path) -> FS.unlink path
 
 rmDir = rmdir = (path) -> FS.rmdir path
 
@@ -83,13 +85,27 @@ isFile = async (path) -> (yield stat path).isFile()
 
 mkDir = mkdir = curry binary (mode, path) -> FS.mkdir path, mode
 
-mkDirP = mkdirp =  curry binary async (mode, path) ->
+mkDirP = mkdirp = curry binary async (mode, path) ->
   if !(yield exists path)
     parent = dirname path
     if !(yield exists parent)
       yield mkdirp mode, parent
-    mkdir mode, path
+    try
+      yield mkdir mode, path
+    catch error
+      if error.code != "EEXIST"
+        throw error
+
+mv = curry binary (old, _new) -> FS.rename old, _new
+
+cp = curry binary (old, _new) ->
+  promise (resolve, reject) ->
+    (fs.createReadStream old)
+    .pipe(fs.createWriteStream _new)
+    .on "error", (error) -> reject error
+    .on "close", -> resolve()
 
 module.exports = {read, write, rm, stat, exist, exists,
   isFile, isDirectory, readdir, readDir, ls, lsR, lsr, glob,
-  mkdir, mkDir, mkdirp, mkDirP, chdir, chDir, rmdir, rmDir}
+  mkdir, mkDir, mkdirp, mkDirP, chdir, chDir, rm, rmdir, rmDir,
+  cp, mv}

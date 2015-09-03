@@ -8,7 +8,7 @@ Amen.describe "File system functions", (context) ->
   {read, write, rm, stat, exist, exists,
     isFile, isDirectory, readdir, readDir,
     ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
-    chdir, chDir, rmdir, rmDir} = require "../src"
+    chdir, chDir, rm, rmdir, rmDir, cp, mv} = require "../src"
 
   context.test "stat", ->
     assert (yield stat "test/data/lines.txt").size?
@@ -54,7 +54,21 @@ Amen.describe "File system functions", (context) ->
       assert (fs.statSync "index.coffee").size?
     assert cwd == process.cwd()
 
-  context.test "rm"
+  context.test "cp", ->
+    yield cp "./test/data/lines.txt", "./test/data/lines2.txt"
+    lines = yield read "./test/data/lines.txt"
+    lines2 = yield read "./test/data/lines2.txt"
+    assert lines == lines2
+
+    context.test "mv", ->
+      yield mv "./test/data/lines2.txt", "./test/data/lines3.txt"
+      assert !(yield exist "./test/data/lines2.txt")
+      lines3 = yield read "./test/data/lines3.txt"
+      assert lines == lines2
+
+      context.test "rm", ->
+        yield rm "./test/data/lines3.txt"
+        assert !(yield exist "./test/data/lines3.txt")
 
   context.test "rmdir", ->
 
