@@ -42,10 +42,10 @@ processBuffer = (stream, encoding = "utf8") ->
 
 # Extracts a stream's raw buffer.
 extractBuffer = (stream) ->
-  buffer = ""
+  buffer = new Buffer(0)
   promise (resolve, reject) ->
-    stream.on "data", (data) -> buffer += data.toString()
-    stream.on "end", -> resolve new Buffer(buffer)
+    stream.on "data", (data) -> buffer = Buffer.concat [buffer, data]
+    stream.on "end", -> resolve buffer
     stream.on "error", (error) -> reject error
 
 Method.define read, stream.Readable, processBuffer
