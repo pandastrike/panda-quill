@@ -1,6 +1,6 @@
 {join, dirname} = require "path"
 {curry, binary} = require "fairmont-core"
-{async} = require "fairmont-helpers"
+{async, isType, isMember, isFunction, isString, eq} = require "fairmont-helpers"
 {Method} = require "fairmont-multimethods"
 {flatten} = require "fairmont-reactive"
 {liftAll} = require "when/node"
@@ -20,20 +20,21 @@ exists = exist = async (path) ->
 
 read = Method.create()
 
-Method.define read, String, String, (path, encoding) ->
-  FS.readFile path, encoding
+Method.define read, isString, isString,
+  (path, encoding) ->
+    FS.readFile path, encoding
 
-Method.define read, String, (path) -> read path, 'utf8'
+Method.define read, isString, (path) -> read path, 'utf8'
 
 readBuffer = (path) -> FS.readFile path
-Method.define read, String, undefined, readBuffer
-Method.define read, String, "binary", readBuffer
-Method.define read, String, "buffer", readBuffer
+Method.define read, isString, (eq undefined), readBuffer
+Method.define read, isString, (eq "binary"), readBuffer
+Method.define read, isString, (eq "buffer"), readBuffer
 
 stream = require "stream"
 {promise} = require "when"
 
-Method.define read, stream.Readable, (stream) ->
+Method.define read, (isMember stream.Readable), (stream) ->
   buffer = ""
   promise (resolve, reject) ->
     stream.on "data", (data) -> buffer += data.toString()
@@ -65,12 +66,12 @@ write = (path, content) -> FS.writeFile path, content
 
 chDir = chdir = Method.create()
 
-Method.define chdir, String, (path) ->
+Method.define chdir, isString, (path) ->
   cwd = process.cwd()
   process.chdir path
   -> process.chdir cwd
 
-Method.define chdir, String, Function, (path, f) ->
+Method.define chdir, isString, isFunction, (path, f) ->
   restore = chdir path
   f()
   restore()
