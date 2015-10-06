@@ -1,8 +1,9 @@
 {join, dirname} = require "path"
 {curry, binary} = require "fairmont-core"
-{async, isType, isMember, isFunction, isString, eq} = require "fairmont-helpers"
+{async,
+  isType, isMember, isFunction, isString, isPromise,
+  eq} = require "fairmont-helpers"
 {Method} = require "fairmont-multimethods"
-{flatten} = require "fairmont-reactive"
 {liftAll} = require "when/node"
 {promise} = require "when"
 FS = (liftAll require "fs")
@@ -34,12 +35,29 @@ Method.define read, isString, (eq "buffer"), readBuffer
 stream = require "stream"
 {promise} = require "when"
 
-Method.define read, (isMember stream.Readable), (stream) ->
+# Stringifies a stream's buffer according to the given encoding.
+processBuffer = (stream, encoding = "utf8") ->
   buffer = ""
   promise (resolve, reject) ->
-    stream.on "data", (data) -> buffer += data.toString()
+    stream.on "data", (data) -> buffer += data.toString(encoding)
     stream.on "end", -> resolve buffer
     stream.on "error", (error) -> reject error
+
+# Extracts a stream's raw buffer.
+extractBuffer = (stream) ->
+  buffer = new Buffer(0)
+  promise (resolve, reject) ->
+    stream.on "data", (data) -> buffer = Buffer.concat [buffer, data]
+    stream.on "end", -> resolve buffer
+    stream.on "error", (error) -> reject error
+
+Method.define read, (isMember stream.Readable), processBuffer
+Method.define read, (isMember stream.Readable), isString, processBuffer
+Method.define read, (isMember stream.Readable), (eq undefined), extractBuffer
+Method.define read, (isMember stream.Readable), (eq "binary"), extractBuffer
+Method.define read, (isMember stream.Readable), (eq "buffer"), extractBuffer
+
+write = (path, content) -> FS.writeFile path, content
 
 readdir = readDir = (path) -> FS.readdir path
 
@@ -62,8 +80,6 @@ glob = async (pattern, path) ->
     minimatch.match path
   _path for _path in (yield lsR path) when match _path
 
-write = (path, content) -> FS.writeFile path, content
-
 chDir = chdir = Method.create()
 
 Method.define chdir, isString, (path) ->
@@ -78,11 +94,16 @@ Method.define chdir, isString, isFunction, (path, f) ->
 
 rm = (path) -> FS.unlink path
 
+mv = curry binary (old, _new) -> FS.rename old, _new
+
+cp = curry binary (old, _new) ->
+  promise (resolve, reject) ->
+    (fs.createReadStream old)
+    .pipe(fs.createWriteStream _new)
+    .on "error", (error) -> reject error
+    .on "close", -> resolve()
+
 rmDir = rmdir = (path) -> FS.rmdir path
-
-isDirectory = async (path) -> (yield stat path).isDirectory()
-
-isFile = async (path) -> (yield stat path).isFile()
 
 mkDir = mkdir = curry binary (mode, path) -> FS.mkdir path, mode
 
@@ -97,16 +118,11 @@ mkDirP = mkdirp = curry binary async (mode, path) ->
       if error.code != "EEXIST"
         throw error
 
-mv = curry binary (old, _new) -> FS.rename old, _new
+isDirectory = async (path) -> (yield stat path).isDirectory()
 
-cp = curry binary (old, _new) ->
-  promise (resolve, reject) ->
-    (fs.createReadStream old)
-    .pipe(fs.createWriteStream _new)
-    .on "error", (error) -> reject error
-    .on "close", -> resolve()
+isFile = async (path) -> (yield stat path).isFile()
 
-module.exports = {read, write, rm, stat, exist, exists,
+module.exports = {read, write, stat, exist, exists,
   isFile, isDirectory, readdir, readDir, ls, lsR, lsr, glob,
   mkdir, mkDir, mkdirp, mkDirP, chdir, chDir, rm, rmdir, rmDir,
   cp, mv}

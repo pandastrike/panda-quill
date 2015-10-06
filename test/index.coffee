@@ -2,6 +2,7 @@
 {join} = require "path"
 assert = require "assert"
 Amen = require "amen"
+fs = require "fs"
 
 Amen.describe "File system functions", (context) ->
 
@@ -10,81 +11,130 @@ Amen.describe "File system functions", (context) ->
     ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
     chdir, chDir, rm, rmdir, rmDir, cp, mv} = require "../src"
 
+  testDirectory = join __dirname, "data"
+
   context.test "stat", ->
-    assert (yield stat "test/data/lines.txt").size?
+    info = yield stat join testDirectory, "lines.txt"
+    assert info.mode? && info.uid? && info.gid? && info.size? &&
+      info.atime? && info.mtime? && info.ctime?
 
   context.test "exists", ->
-    assert (yield exists "test/data/lines.txt")
-    assert !(yield exists "test/data/does-not-exist")
+    assert (yield exists join testDirectory, "lines.txt") == true
+    assert (yield exists join testDirectory, "does-not-exist") == false
 
-  do ->
+  context.test "read", (context) ->
 
-    context.test "read", ->
-      assert (yield read "test/data/lines.txt") == "one\ntwo\nthree\n"
+    path = join testDirectory, "pandas.txt"
+    target = "pandas love bamboo\n"
 
-      context.test "write", ->
-        write "test/data/lines.txt", (yield read "test/data/lines.txt")
+    context.test "files", ->
+      assert (yield read path) == target
 
-    context.test "read buffer", ->
-      assert (yield read "test/data/lines.txt", "binary").constructor == Buffer
+    context.test "buffer", ->
+      assert (yield read path, "buffer").toString() == target
 
-    context.test "read stream", ->
-      s = createReadStream "test/data/lines.txt"
-      assert (yield read s) == "one\ntwo\nthree\n"
+    context.test "streams", ->
+      stream = fs.createReadStream path
+      assert (yield read stream) == target
 
-  context.test "readdir", ->
-    assert "lines.txt" in (yield readdir "test/data")
+  context.test "write", ->
+    path = join testDirectory, "time.txt"
+    currentTime = Date.now().toString()
+    yield write path, currentTime
+    assert (yield read path) == currentTime
+
+  context.test "readDir", ->
+    files = yield readDir testDirectory
+    assert "lines.txt" in files
+    assert "pandas.txt" in files
 
   context.test "ls", ->
+    paths = yield ls testDirectory
+    assert (join testDirectory, "lines.txt") in paths
+    assert (join testDirectory, "pandas.txt") in paths
 
-    context.test "lsR", ->
-      testDir = join __dirname, ".."
-      assert (join testDir, "test/data/lines.txt") in (yield lsR testDir)
+  context.test "lsR", ->
+    paths = yield lsR testDirectory
+    assert (join testDirectory, "lines.txt") in paths
+    assert (join testDirectory, "pandas.txt") in paths
+    assert (join testDirectory, "lsr", "pandas.txt") in paths
 
   context.test "glob", ->
-    src = join __dirname, "..", "src"
-    assert ((join src, "index.coffee") in
-      (yield glob "**/*.coffee", src))
+    paths = yield glob "**/*.txt", testDirectory
+    assert (join testDirectory, "lines.txt") in paths
+    assert (join testDirectory, "pandas.txt") in paths
+    assert (join testDirectory, "lsr", "pandas.txt") in paths
 
-  context.test "chdir", ->
-    src = join __dirname, "..", "src"
+  context.test "chdir", (context) ->
     cwd = process.cwd()
-    chdir src, ->
-      fs = require "fs"
-      assert (fs.statSync "index.coffee").size?
-    assert cwd == process.cwd()
+
+    context.test "with restore", ->
+      restore = chdir testDirectory
+      assert process.cwd() == testDirectory
+      assert restore.call?
+      restore()
+      assert process.cwd() == cwd
+
+    context.test "with function", ->
+      wd = undefined
+      chdir testDirectory, -> wd = process.cwd()
+      assert wd == testDirectory
+      assert process.cwd() == cwd
+
+  context.test "mv", ->
+    from = join testDirectory, "mv", "pandas.txt"
+    to = join testDirectory, "mv", "bamboo.txt"
+
+    # move from -> to
+    yield mv from, to
+    assert !(yield exist from)
+    assert yield exist to
+
+    # now reverse it
+    yield mv to, from
+    assert !(yield exist to)
+    assert yield exist from
 
   context.test "cp", ->
-    yield cp "./test/data/lines.txt", "./test/data/lines2.txt"
-    lines = yield read "./test/data/lines.txt"
-    lines2 = yield read "./test/data/lines2.txt"
-    assert lines == lines2
+    from = join testDirectory, "cp", "pandas.txt"
+    to = join testDirectory, "cp", "bamboo.txt"
 
-    context.test "mv", ->
-      yield mv "./test/data/lines2.txt", "./test/data/lines3.txt"
-      assert !(yield exist "./test/data/lines2.txt")
-      lines3 = yield read "./test/data/lines3.txt"
-      assert lines == lines2
+    # cp from -> to
+    yield cp from, to
+    assert yield exist from
+    assert yield exist to
 
-      context.test "rm", ->
-        yield rm "./test/data/lines3.txt"
-        assert !(yield exist "./test/data/lines3.txt")
+    context.test "rm", ->
+      # now reverse it
+      yield rm to
+      assert !(yield exist to)
 
-  context.test "rmdir", ->
+  context.test "mkDir", ->
+    path = join testDirectory, "mkdir"
+    yield mkDir "0777", path
 
-    context.test "mkdir", ->
-      yield mkdir '0777', "./test/data/foobar"
-      assert (yield isDirectory "./test/data/foobar")
-      yield rmdir "./test/data/foobar"
+    assert yield exist path
 
-    context.test "mkdirp", ->
-      yield mkdirp '0777', "./test/data/foo/bar"
-      assert (yield isDirectory "./test/data/foo/bar")
-      yield rmdir "./test/data/foo/bar"
-      yield rmdir "./test/data/foo"
+    context.test "rmDir", ->
+      yield rmDir path
+      assert !(yield exist path)
+
+  context.test "mkDirP", ->
+    path = join testDirectory, "mkdirp", "nested"
+    yield mkDirP "0777", path
+    assert yield exist path
+
+    # cleanup
+    yield rmDir join testDirectory, "mkdirp", "nested"
+    yield rmDir join testDirectory, "mkdirp"
+    assert !(yield exist path)
 
   context.test "isDirectory", ->
-    assert (yield isDirectory "./test/data")
+    path = join testDirectory, "pandas.txt"
+    assert yield isDirectory testDirectory
+    assert !(yield isDirectory path)
 
   context.test "isFile", ->
-    assert (yield isFile "./test/data/lines.txt")
+    path = join testDirectory, "pandas.txt"
+    assert yield isFile path
+    assert !(yield isFile testDirectory)
