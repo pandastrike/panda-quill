@@ -1,7 +1,7 @@
 {join, dirname} = require "path"
 {curry, binary} = require "fairmont-core"
 {async,
-  isType, isMember, isFunction, isString, isPromise,
+  isType, isKind, isFunction, isString, isPromise,
   eq} = require "fairmont-helpers"
 {Method} = require "fairmont-multimethods"
 {liftAll} = require "when/node"
@@ -51,11 +51,11 @@ extractBuffer = (stream) ->
     stream.on "end", -> resolve buffer
     stream.on "error", (error) -> reject error
 
-Method.define read, (isMember stream.Readable), processBuffer
-Method.define read, (isMember stream.Readable), isString, processBuffer
-Method.define read, (isMember stream.Readable), (eq undefined), extractBuffer
-Method.define read, (isMember stream.Readable), (eq "binary"), extractBuffer
-Method.define read, (isMember stream.Readable), (eq "buffer"), extractBuffer
+Method.define read, (isKind stream.Readable), processBuffer
+Method.define read, (isKind stream.Readable), isString, processBuffer
+Method.define read, (isKind stream.Readable), (eq undefined), extractBuffer
+Method.define read, (isKind stream.Readable), (eq "binary"), extractBuffer
+Method.define read, (isKind stream.Readable), (eq "buffer"), extractBuffer
 
 write = (path, content) -> FS.writeFile path, content
 
