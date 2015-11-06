@@ -1,4 +1,6 @@
 {join, dirname} = require "path"
+stream = require "stream"
+{promise} = require "when"
 {curry, binary} = require "fairmont-core"
 {async,
   isType, isKind, isFunction, isString, isPromise,
@@ -8,7 +10,7 @@
 {promise} = require "when"
 FS = (liftAll require "fs")
 fs = require "fs"
-{Minimatch} = require "minimatch"
+minimatch = require "minimatch"
 
 stat = (path) -> FS.stat path
 
@@ -18,6 +20,14 @@ exists = exist = async (path) ->
     true
   catch
     false
+
+isDirectory = async (path) -> (yield stat path).isDirectory()
+
+isFile = async (path) -> (yield stat path).isFile()
+
+isReadStream = isKind stream.Readable
+
+isWriteStream = isKind stream.Writeable
 
 read = Method.create()
 
@@ -32,11 +42,8 @@ Method.define read, isString, (eq undefined), readBuffer
 Method.define read, isString, (eq "binary"), readBuffer
 Method.define read, isString, (eq "buffer"), readBuffer
 
-stream = require "stream"
-{promise} = require "when"
-
 # Stringifies a stream's buffer according to the given encoding.
-processBuffer = (stream, encoding = "utf8") ->
+readStream = (stream, encoding = "utf8") ->
   buffer = ""
   promise (resolve, reject) ->
     stream.on "data", (data) -> buffer += data.toString(encoding)
@@ -44,20 +51,30 @@ processBuffer = (stream, encoding = "utf8") ->
     stream.on "error", (error) -> reject error
 
 # Extracts a stream's raw buffer.
-extractBuffer = (stream) ->
+readBinaryStream = (stream) ->
   buffer = new Buffer(0)
   promise (resolve, reject) ->
     stream.on "data", (data) -> buffer = Buffer.concat [buffer, data]
     stream.on "end", -> resolve buffer
     stream.on "error", (error) -> reject error
 
-Method.define read, (isKind stream.Readable), processBuffer
-Method.define read, (isKind stream.Readable), isString, processBuffer
-Method.define read, (isKind stream.Readable), (eq undefined), extractBuffer
-Method.define read, (isKind stream.Readable), (eq "binary"), extractBuffer
-Method.define read, (isKind stream.Readable), (eq "buffer"), extractBuffer
+Method.define read, isReadStream, readStream
+Method.define read, isReadStream, isString, readStream
+Method.define read, isReadStream, (eq undefined), readBinaryStream
+Method.define read, isReadStream, (eq "binary"), readBinaryStream
+Method.define read, isReadStream, (eq "buffer"), readBinaryStream
 
-write = (path, content) -> FS.writeFile path, content
+write = Method.create()
+
+Method.define write, isString, isString,
+  (path, content) -> FS.writeFile path, content
+
+Method.define write, isString, isReadStream,
+  (path, stream) -> stream.pipe fs.createWriteStream path
+
+# TODO: Add buffer support?
+
+write = curry binary write
 
 readdir = readDir = (path) -> FS.readdir path
 
@@ -75,10 +92,7 @@ lsR = lsr = async (path, visited = []) ->
   visited
 
 glob = async (pattern, path) ->
-  minimatch = new Minimatch pattern
-  match = (path) ->
-    minimatch.match path
-  _path for _path in (yield lsR path) when match _path
+  minimatch.match (yield lsR path), (join path, pattern)
 
 chDir = chdir = Method.create()
 
@@ -118,11 +132,8 @@ mkDirP = mkdirp = curry binary async (mode, path) ->
       if error.code != "EEXIST"
         throw error
 
-isDirectory = async (path) -> (yield stat path).isDirectory()
-
-isFile = async (path) -> (yield stat path).isFile()
-
 module.exports = {read, write, stat, exist, exists,
-  isFile, isDirectory, readdir, readDir, ls, lsR, lsr, glob,
-  mkdir, mkDir, mkdirp, mkDirP, chdir, chDir, rm, rmdir, rmDir,
-  cp, mv}
+  isReadStream, isWriteStream, isFile, isDirectory,
+  readdir, readDir, ls, lsR, lsr, glob,
+  mkdir, mkDir, mkdirp, mkDirP, chdir, chDir,
+  cp, mv, rm, rmdir, rmDir}

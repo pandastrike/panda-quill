@@ -37,11 +37,17 @@ Amen.describe "File system functions", (context) ->
       stream = fs.createReadStream path
       assert (yield read stream) == target
 
-  context.test "write", ->
+  context.test "write", (context) ->
     path = join testDirectory, "time.txt"
     currentTime = Date.now().toString()
-    yield write path, currentTime
-    assert (yield read path) == currentTime
+
+    context.test "string", ->
+      yield write path, currentTime
+      assert (yield read path) == currentTime
+
+    context.test "stream"
+
+    context.test "buffer"
 
   context.test "readDir", ->
     files = yield readDir testDirectory
@@ -64,6 +70,11 @@ Amen.describe "File system functions", (context) ->
     assert (join testDirectory, "lines.txt") in paths
     assert (join testDirectory, "pandas.txt") in paths
     assert (join testDirectory, "lsr", "pandas.txt") in paths
+
+    paths = yield glob "data/*.txt", __dirname
+    assert (join testDirectory, "lines.txt") in paths
+    assert (join testDirectory, "pandas.txt") in paths
+    assert !((join testDirectory, "lsr", "pandas.txt") in paths)
 
   context.test "chdir", (context) ->
     cwd = process.cwd()
