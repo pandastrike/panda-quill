@@ -6,12 +6,19 @@ fs = require "fs"
 
 Amen.describe "File system functions", (context) ->
 
-  {read, write, rm, stat, exist, exists,
+  {isReadable, isWritable,
+    read, write, rm, stat, exist, exists,
     isFile, isDirectory, readdir, readDir,
     ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
     chdir, chDir, rm, rmdir, rmDir, cp, mv} = require "../src"
 
   testDirectory = join __dirname, "data"
+
+  context.test "isReadable", ->
+    assert isReadable process.stdin
+
+  context.test "isWritable", ->
+    assert isWritable process.stdout
 
   context.test "stat", ->
     info = yield stat join testDirectory, "lines.txt"

@@ -16,18 +16,27 @@ stat = (path) -> FS.stat path
 
 exists = exist = async (path) ->
   try
-    yield FS.stat path
-    true
+    (yield FS.stat path)?
   catch
     false
 
-isDirectory = async (path) -> (yield stat path).isDirectory()
+isDirectory = async (path) ->
+  try
+    (yield stat path).isDirectory()
+  catch
+    false
 
-isFile = async (path) -> (yield stat path).isFile()
+isFile = async (path) ->
+  try
+    (yield stat path).isFile()
+  catch
+    false
 
-isReadStream = isKind stream.Readable
+isReadable = (x) -> x?.read?.call?
 
-isWriteStream = isKind stream.Writeable
+# socket-based streams are duplex streams
+# and do not inherit from stream.writable
+isWritable = (x) -> x?.write?.call?
 
 read = Method.create()
 
@@ -58,19 +67,28 @@ readBinaryStream = (stream) ->
     stream.on "end", -> resolve buffer
     stream.on "error", (error) -> reject error
 
-Method.define read, isReadStream, readStream
-Method.define read, isReadStream, isString, readStream
-Method.define read, isReadStream, (eq undefined), readBinaryStream
-Method.define read, isReadStream, (eq "binary"), readBinaryStream
-Method.define read, isReadStream, (eq "buffer"), readBinaryStream
+Method.define read, isReadable, readStream
+Method.define read, isReadable, isString, readStream
+Method.define read, isReadable, (eq undefined), readBinaryStream
+Method.define read, isReadable, (eq "binary"), readBinaryStream
+Method.define read, isReadable, (eq "buffer"), readBinaryStream
 
 write = Method.create()
 
 Method.define write, isString, isString,
   (path, content) -> FS.writeFile path, content
 
-Method.define write, isString, isReadStream,
+Method.define write, isString, isReadable,
   (path, stream) -> stream.pipe fs.createWriteStream path
+
+Method.define write, isWritable, isString,
+  (stream, content) ->
+    promise (resolve, reject) ->
+      stream.write content, "utf-8", (error) ->
+        if !error?
+          resolve()
+        else
+          reject error
 
 # TODO: Add buffer support?
 
@@ -133,7 +151,7 @@ mkDirP = mkdirp = curry binary async (mode, path) ->
         throw error
 
 module.exports = {read, write, stat, exist, exists,
-  isReadStream, isWriteStream, isFile, isDirectory,
+  isReadable, isWritable, isFile, isDirectory,
   readdir, readDir, ls, lsR, lsr, glob,
   mkdir, mkDir, mkdirp, mkDirP, chdir, chDir,
   cp, mv, rm, rmdir, rmDir}
