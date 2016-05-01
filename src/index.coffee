@@ -2,17 +2,15 @@
 stream = require "stream"
 {promise} = require "when"
 {curry, binary} = require "fairmont-core"
-{async,
+{async, promise, lift,
   isType, isKind, isFunction, isString, isPromise,
   eq} = require "fairmont-helpers"
 {Method} = require "fairmont-multimethods"
-{liftAll} = require "when/node"
-{promise} = require "when"
-FS = (liftAll require "fs")
+FS = (lift require "fs")
 fs = require "fs"
 minimatch = require "minimatch"
 
-stat = (path) -> FS.stat path
+{stat} = FS
 
 exists = exist = async (path) ->
   try

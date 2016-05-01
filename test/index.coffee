@@ -26,8 +26,8 @@ Amen.describe "File system functions", (context) ->
       info.atime? && info.mtime? && info.ctime?
 
   context.test "exists", ->
-    assert (yield exists join testDirectory, "lines.txt") == true
-    assert (yield exists join testDirectory, "does-not-exist") == false
+    assert.equal (yield exists join testDirectory, "lines.txt"), true
+    assert.equal (yield exists join testDirectory, "does-not-exist"), false
 
   context.test "read", (context) ->
 

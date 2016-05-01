@@ -1,9 +1,8 @@
 {
   "name": "fairmont-filesystem",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "True functional reactive programming for JavaScript.",
   "files": [
-    "src/",
     "lib/",
     "README.md"
   ],
@@ -12,7 +11,7 @@
     "test": "coffee test/index.coffee",
     "watch": "coffee -o lib/ -cw src/*.*coffee",
     "prepublish": "coffee -o lib/ -c src/*.*coffee",
-    "postpublish": "(node_modules/.bin/json -f package.json version | tee ./VERSION | xargs -I version git tag -am version version) && git push --tags"
+    "postpublish": "(node_modules/.bin/json -f package.json version | xargs -I version git tag -am version version) && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -23,18 +22,17 @@
     "Dan Yoder"
   ],
   "license": "ISC",
+  "dependencies": {
+    "fairmont-core": "1.0.x",
+    "fairmont-helpers": "1.1.x",
+    "fairmont-multimethods": "1.0.x",
+    "fairmont-reactive": "1.0.x",
+    "minimatch": "^2.0.9"
+  },
   "devDependencies": {
-    "amen": "^1.0.0-alpha-03",
+    "amen": "^1.0.1",
     "coffee-script": "^1.10.0",
     "json": "^9.0.3"
   },
-  "dependencies": {
-    "fairmont-core": "1.0.x",
-    "fairmont-helpers": "1.0.x",
-    "fairmont-multimethods": "1.0.x",
-    "fairmont-reactive": "1.0.x",
-    "minimatch": "^2.0.9",
-    "when": "^3.7.3"
-  },
-  "engine": "node >= 4.0.x"
+  "engine": "node >= 6.0.0"
 }
