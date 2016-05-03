@@ -1,6 +1,5 @@
 {join, dirname} = require "path"
 stream = require "stream"
-{promise} = require "when"
 {curry, binary} = require "fairmont-core"
 {async, promise, lift,
   isType, isKind, isFunction, isString, isPromise,
