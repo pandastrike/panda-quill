@@ -1,6 +1,6 @@
 {
   "name": "fairmont-filesystem",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "True functional reactive programming for JavaScript.",
   "files": [
     "lib/",
@@ -26,7 +26,7 @@
     "fairmont-core": "1.0.x",
     "fairmont-helpers": "1.1.x",
     "fairmont-multimethods": "1.0.x",
-    "fairmont-reactive": "1.1.x",
+    "fairmont-reactive": "^1.1.1",
     "minimatch": "^2.0.9"
   },
   "devDependencies": {
