@@ -1,6 +1,6 @@
 {
   "name": "fairmont-filesystem",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "True functional reactive programming for JavaScript.",
   "files": [
     "lib/",
@@ -23,10 +23,10 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "fairmont-core": "1.0.x",
-    "fairmont-helpers": "1.1.x",
-    "fairmont-multimethods": "1.0.x",
-    "fairmont-reactive": "^1.1.1",
+    "fairmont-core": "^1.0.0",
+    "fairmont-helpers": "^1.1.2",
+    "fairmont-multimethods": "^1.0.0",
+    "fairmont-reactive": "^1.1.2",
     "minimatch": "^2.0.9"
   },
   "devDependencies": {
