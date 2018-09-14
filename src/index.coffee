@@ -1,31 +1,33 @@
-{join, dirname} = require "path"
-stream = require "stream"
-{curry, binary} = require "fairmont-core"
-{async, promise, lift,
-  isType, isKind, isFunction, isString, isPromise,
-  eq} = require "fairmont-helpers"
-{Method} = require "fairmont-multimethods"
-FS = (lift require "fs")
-fs = require "fs"
-minimatch = require "minimatch"
+import {exec} from "child_process"
+import {join, dirname} from "path"
+import stream from "stream"
+import {curry, binary} from "panda-garden"
+import {isType, isKind, isFunction, isString, isPromise,
+  promise, eq, rephrase} from "panda-parchment"
+import {Method} from "panda-generics"
+import fs from "fs"
+import minimatch from "minimatch"
 
+FS = rephrase "node", fs
+
+# we're going to export this
 {stat} = FS
 
-exists = exist = async (path) ->
+exists = exist =  (path) ->
   try
-    (yield FS.stat path)?
+    (await FS.stat path)?
   catch
     false
 
-isDirectory = async (path) ->
+isDirectory =  (path) ->
   try
-    (yield stat path).isDirectory()
+    (await FS.stat path).isDirectory()
   catch
     false
 
-isFile = async (path) ->
+isFile =  (path) ->
   try
-    (yield stat path).isFile()
+    (await FS.stat path).isFile()
   catch
     false
 
@@ -93,21 +95,21 @@ write = curry binary write
 
 readdir = readDir = (path) -> FS.readdir path
 
-ls = async (path) ->
-  (join path, file) for file in (yield readdir path)
+ls =  (path) ->
+  (join path, file) for file in (await readdir path)
 
-lsR = lsr = async (path, visited = []) ->
-  for childPath in (yield ls path)
+lsR = lsr =  (path, visited = []) ->
+  for childPath in (await ls path)
     if !(childPath in visited)
-      info = yield FS.lstat childPath
+      info = await FS.lstat childPath
       if info.isDirectory()
-        yield lsR childPath, visited
+        await lsR childPath, visited
       else
         visited.push childPath
   visited
 
-glob = async (pattern, path) ->
-  minimatch.match (yield lsR path), (join path, pattern)
+glob =  (pattern, path) ->
+  minimatch.match (await lsR path), (join path, pattern)
 
 chDir = chdir = Method.create()
 
@@ -136,19 +138,35 @@ rmDir = rmdir = (path) -> FS.rmdir path
 
 mkDir = mkdir = curry binary (mode, path) -> FS.mkdir path, mode
 
-mkDirP = mkdirp = curry binary async (mode, path) ->
-  if !(yield exists path)
+mkDirP = mkdirp = curry binary  (mode, path) ->
+  if !(await exists path)
     parent = dirname path
-    if !(yield exists parent)
-      yield mkdirp mode, parent
+    if !(await exists parent)
+      await mkdirp mode, parent
     try
-      yield mkdir mode, path
+      await mkdir mode, path
     catch error
       if error.code != "EEXIST"
         throw error
 
-module.exports = {read, write, stat, exist, exists,
+abort = (message) ->
+  console.error message if message?
+  process.exit -1
+
+run = (command) ->
+  promise (resolve, reject) ->
+    exec command, (error, stdout, stderr) ->
+      if error
+        reject error
+      else
+        resolve {stdout, stderr}
+
+print = ({stdout, stderr}) ->
+  process.stdout.write stdout if stdout.length > 0
+  process.stderr.write stderr if stderr.length > 0
+
+export {read, write, stat, exist, exists,
   isReadable, isWritable, isFile, isDirectory,
   readdir, readDir, ls, lsR, lsr, glob,
   mkdir, mkDir, mkdirp, mkDirP, chdir, chDir,
-  cp, mv, rm, rmdir, rmDir}
+  cp, mv, rm, rmdir, rmDir, run, print, abort}

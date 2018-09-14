@@ -1,38 +1,36 @@
 {
-  "name": "fairmont-filesystem",
-  "version": "2.0.0",
-  "description": "True functional reactive programming for JavaScript.",
+  "name": "panda-quill",
+  "version": "3.0.0",
+  "description": "Functional API wrappers for Node APIs",
   "files": [
-    "lib/",
-    "README.md"
+    "build/npm"
   ],
-  "main": "lib/index.js",
+  "main": "build/npm/src/index.js",
   "scripts": {
-    "test": "coffee test/index.coffee",
-    "watch": "coffee -o lib/ -cw src/*.*coffee",
-    "prepublish": "coffee -o lib/ -c src/*.*coffee",
-    "postpublish": "(node_modules/.bin/json -f package.json version | xargs -I version git tag -am version version) && git push --tags"
+    "test": "gulp npm:test"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/dyoder/fairmont.git"
+    "url": "git://github.com/pandastrike/panda-builder.git"
   },
   "keywords": [],
   "authors": [
     "Dan Yoder"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "fairmont-core": "^1.0.0",
-    "fairmont-helpers": "^2.0.0",
-    "fairmont-multimethods": "^1.0.0",
-    "fairmont-reactive": "^2.0.0",
-    "minimatch": "^2.0.9"
+    "minimatch": "^2.0.10",
+    "panda-garden": "^1.0.0",
+    "panda-generics": "^4.0.0",
+    "panda-parchment": "^4.0.2"
   },
   "devDependencies": {
-    "amen": "^1.0.1",
-    "coffee-script": "^1.10.0",
-    "json": "^9.0.3"
+    "amen": "^2.0.5",
+    "babel-plugin-transform-async-generator-functions": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "coffeescript": "^2.3.1",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "panda-builder": "^2.1.0"
   },
-  "engine": "node >= 6.0.0"
+  "engine": "node >= 8.10"
 }

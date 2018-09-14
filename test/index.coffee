@@ -1,158 +1,187 @@
-{createReadStream} = require "fs"
-{join} = require "path"
-assert = require "assert"
-Amen = require "amen"
-fs = require "fs"
+import {createReadStream} from "fs"
+import {resolve, join} from "path"
+import assert from "assert"
+import {print as _print, test} from "amen"
+import fs from "fs"
+import {isFunction} from "panda-parchment"
 
-Amen.describe "File system functions", (context) ->
+import {isReadable, isWritable,
+  read, write, rm, stat, exist, exists,
+  isFile, isDirectory, readdir, readDir,
+  ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
+  chdir, chDir, rmdir, rmDir, cp, mv, run, print, abort} from "../src"
 
-  {isReadable, isWritable,
-    read, write, rm, stat, exist, exists,
-    isFile, isDirectory, readdir, readDir,
-    ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
-    chdir, chDir, rm, rmdir, rmDir, cp, mv} = require "../src"
+testDirectory = resolve "test", "data"
 
-  testDirectory = join __dirname, "data"
+do ->
 
-  context.test "isReadable", ->
+  _print await test "Panda Quill",  [
+
+   test "isReadable", ->
     assert isReadable process.stdin
 
-  context.test "isWritable", ->
+   test "isWritable", ->
     assert isWritable process.stdout
 
-  context.test "stat", ->
-    info = yield stat join testDirectory, "lines.txt"
+   test "stat", ->
+    info = await stat join testDirectory, "lines.txt"
     assert info.mode? && info.uid? && info.gid? && info.size? &&
       info.atime? && info.mtime? && info.ctime?
 
-  context.test "exists", ->
-    assert.equal (yield exists join testDirectory, "lines.txt"), true
-    assert.equal (yield exists join testDirectory, "does-not-exist"), false
+   test "exists", ->
+    assert.equal (await exists join testDirectory, "lines.txt"), true
+    assert.equal (await exists join testDirectory, "does-not-exist"), false
 
-  context.test "read", (context) ->
+   test "read", do ->
 
     path = join testDirectory, "pandas.txt"
-    target = "pandas love bamboo\n"
+    target = "Pandas love bamboo.\n"
 
-    context.test "files", ->
-      assert (yield read path) == target
+    [
+     test "files", ->
+      assert (await read path) == target
 
-    context.test "buffer", ->
-      assert (yield read path, "buffer").toString() == target
+     test "buffer", ->
+      assert (await read path, "buffer").toString() == target
 
-    context.test "streams", ->
+     test "streams", ->
       stream = fs.createReadStream path
-      assert (yield read stream) == target
+      assert (await read stream) == target
+    ]
 
-  context.test "write", (context) ->
+
+   test "write", do ->
+
     path = join testDirectory, "time.txt"
     currentTime = Date.now().toString()
+    [
 
-    context.test "string", ->
-      yield write path, currentTime
-      assert (yield read path) == currentTime
+     test "string", ->
+      await write path, currentTime
+      assert (await read path) == currentTime
 
-    context.test "stream"
+     test "stream"
 
-    context.test "buffer"
+     test "buffer"
 
-  context.test "readDir", ->
-    files = yield readDir testDirectory
+    ]
+
+   test "readDir", ->
+    files = await readDir testDirectory
     assert "lines.txt" in files
     assert "pandas.txt" in files
 
-  context.test "ls", ->
-    paths = yield ls testDirectory
+   test "ls", ->
+    paths = await ls testDirectory
     assert (join testDirectory, "lines.txt") in paths
     assert (join testDirectory, "pandas.txt") in paths
 
-  context.test "lsR", ->
-    paths = yield lsR testDirectory
-    assert (join testDirectory, "lines.txt") in paths
-    assert (join testDirectory, "pandas.txt") in paths
-    assert (join testDirectory, "lsr", "pandas.txt") in paths
-
-  context.test "glob", ->
-    paths = yield glob "**/*.txt", testDirectory
+   test "lsR", ->
+    paths = await lsR testDirectory
     assert (join testDirectory, "lines.txt") in paths
     assert (join testDirectory, "pandas.txt") in paths
     assert (join testDirectory, "lsr", "pandas.txt") in paths
 
-    paths = yield glob "data/*.txt", __dirname
+   test "glob", ->
+    paths = await glob "**/*.txt", testDirectory
+    assert (join testDirectory, "lines.txt") in paths
+    assert (join testDirectory, "pandas.txt") in paths
+    assert (join testDirectory, "lsr", "pandas.txt") in paths
+
+    paths = await glob "data/*.txt", resolve "test"
     assert (join testDirectory, "lines.txt") in paths
     assert (join testDirectory, "pandas.txt") in paths
     assert !((join testDirectory, "lsr", "pandas.txt") in paths)
 
-  context.test "chdir", (context) ->
+   test "chdir", do ->
+
     cwd = process.cwd()
 
-    context.test "with restore", ->
+    [
+
+     test "with restore", ->
       restore = chdir testDirectory
       assert process.cwd() == testDirectory
       assert restore.call?
       restore()
       assert process.cwd() == cwd
 
-    context.test "with function", ->
+     test "with function", ->
       wd = undefined
       chdir testDirectory, -> wd = process.cwd()
       assert wd == testDirectory
       assert process.cwd() == cwd
 
-  context.test "mv", ->
+    ]
+
+   test "mv", ->
+
     from = join testDirectory, "mv", "pandas.txt"
     to = join testDirectory, "mv", "bamboo.txt"
 
     # move from -> to
-    yield mv from, to
-    assert !(yield exist from)
-    assert yield exist to
+    await mv from, to
+    assert !(await exist from)
+    assert await exist to
 
     # now reverse it
-    yield mv to, from
-    assert !(yield exist to)
-    assert yield exist from
+    await mv to, from
+    assert !(await exist to)
+    assert await exist from
 
-  context.test "cp", ->
-    from = join testDirectory, "cp", "pandas.txt"
-    to = join testDirectory, "cp", "bamboo.txt"
+   test "cp/rm", ->
+
+    from = join testDirectory, "pandas.txt"
+    to = join testDirectory, "bamboo.txt"
 
     # cp from -> to
-    yield cp from, to
-    assert yield exist from
-    assert yield exist to
+    await cp from, to
+    assert await exist from
+    assert await exist to
 
-    context.test "rm", ->
-      # now reverse it
-      yield rm to
-      assert !(yield exist to)
+    # now reverse it
+    await rm to
+    assert !(await exist to)
 
-  context.test "mkDir", ->
+   test "mkDir/rmDir", ->
+
     path = join testDirectory, "mkdir"
-    yield mkDir "0777", path
+    await mkDir "0777", path
 
-    assert yield exist path
+    assert await exist path
 
-    context.test "rmDir", ->
-      yield rmDir path
-      assert !(yield exist path)
+    await rmDir path
+    assert !(await exist path)
 
-  context.test "mkDirP", ->
+
+   test "mkDirP", ->
     path = join testDirectory, "mkdirp", "nested"
-    yield mkDirP "0777", path
-    assert yield exist path
+    await mkDirP "0777", path
+    assert await exist path
 
     # cleanup
-    yield rmDir join testDirectory, "mkdirp", "nested"
-    yield rmDir join testDirectory, "mkdirp"
-    assert !(yield exist path)
+    await rmDir join testDirectory, "mkdirp", "nested"
+    await rmDir join testDirectory, "mkdirp"
+    assert !(await exist path)
 
-  context.test "isDirectory", ->
+   test "isDirectory", ->
     path = join testDirectory, "pandas.txt"
-    assert yield isDirectory testDirectory
-    assert !(yield isDirectory path)
+    assert await isDirectory testDirectory
+    assert !(await isDirectory path)
 
-  context.test "isFile", ->
+   test "isFile", ->
     path = join testDirectory, "pandas.txt"
-    assert yield isFile path
-    assert !(yield isFile testDirectory)
+    assert await isFile path
+    assert !(await isFile testDirectory)
+
+  test "abort", ->
+    assert isFunction abort
+
+  test "print", ->
+    assert isFunction print
+
+  test "run", ->
+    assert.equal "hello",
+      (await run "bash -c 'echo -n hello'").stdout
+
+  ]
