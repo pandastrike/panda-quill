@@ -1,7 +1,7 @@
 import {createReadStream} from "fs"
 import {resolve, join} from "path"
 import assert from "assert"
-import {print as _print, test} from "amen"
+import {print as _print, test, success} from "amen"
 import fs from "fs"
 import {isFunction} from "panda-parchment"
 
@@ -185,3 +185,5 @@ do ->
       (await run "bash -c 'echo -n hello'").stdout
 
   ]
+
+  process.exit if success then 0 else 1
