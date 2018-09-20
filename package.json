@@ -1,6 +1,6 @@
 {
   "name": "panda-quill",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Functional API wrappers for Node APIs",
   "files": [
     "build/npm"
@@ -25,12 +25,13 @@
     "panda-parchment": "^4.0.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
     "amen": "^2.0.5",
     "babel-plugin-transform-async-generator-functions": "^6.24.1",
-    "babel-preset-env": "^1.7.0",
     "coffeescript": "^2.3.1",
     "gulp": "github:gulpjs/gulp#4.0",
-    "panda-builder": "^2.1.0"
+    "panda-builder": "^2.3.2"
   },
   "engine": "node >= 8.10"
 }
