@@ -3,12 +3,12 @@ import {join, dirname} from "path"
 import stream from "stream"
 import {curry, binary} from "panda-garden"
 import {isType, isKind, isFunction, isString, isPromise,
-  promise, eq, rephrase} from "panda-parchment"
+  promise, eq} from "panda-parchment"
 import {Method} from "panda-generics"
 import fs from "fs"
 import minimatch from "minimatch"
 
-FS = rephrase "node", fs
+FS = fs.promises
 
 # we're going to export this
 {stat} = FS

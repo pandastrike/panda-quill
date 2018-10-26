@@ -9,7 +9,7 @@ import {isReadable, isWritable,
   read, write, rm, stat, exist, exists,
   isFile, isDirectory, readdir, readDir,
   ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
-  chdir, chDir, rmdir, rmDir, cp, mv, run, print, abort} from "../src"
+  chdir, chDir, rmdir, rmDir, cp, mv, run, print, abort} from "../src/index.js"
 
 testDirectory = resolve "test", "data"
 
