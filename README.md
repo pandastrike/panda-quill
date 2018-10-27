@@ -1,25 +1,7 @@
-# Fairmont-Filesystem
+# Panda Quill
 
-Fairmont-System is a JavaScript library providing access to the Node filesystem API in a functional style.
-It's part of the [Fairmont][] library.
-You can use it by itself, or simply as part of the [Fairmont][] library.
+Panda Quill is a JavaScript library wrapping the Node API in a functional style.
 
 ## Installation
 
-`npm install fairmont-filesystem`
-
-## Documentation
-
-Check out the [wiki][] for an getting started guides, tutorials, and reference documentation.
-
-## Status
-
-[Fairmont][0] is still under heavy development and is `beta` quality, meaning you should probably not use it in your production code.
-
-## Roadmap
-
-You can get an idea of what we're planning by looking at the [issues list][200]. If you want something that isn't there, and you think it would be a good addition, please open a ticket.
-
-[tickets]:https://github.com/pandastrike/fairmont/issues
-[Fairmont]:https://github.com/pandastrike/fairmont
-[wiki]:https://github.com/pandastrike/fairmont/wiki
+`npm i panda-quill`
