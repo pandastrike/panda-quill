@@ -1,3 +1,4 @@
+import {promisify} from "util"
 import {exec} from "child_process"
 import {join, dirname} from "path"
 import stream from "stream"
@@ -8,7 +9,11 @@ import {Method} from "panda-generics"
 import fs from "fs"
 import minimatch from "minimatch"
 
-FS = fs.promises
+FS = do (result = {}) ->
+  for key, value of fs
+    result[key] = if isFunction value then (promisify value) else value
+  result
+
 
 # we're going to export this
 {stat} = FS
