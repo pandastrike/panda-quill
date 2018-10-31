@@ -104,14 +104,21 @@ ls =  (path) ->
   (join path, file) for file in (await readdir path)
 
 lsR = lsr =  (path, visited = []) ->
-  for childPath in (await ls path)
-    if !(childPath in visited)
-      info = await FS.lstat childPath
-      if info.isDirectory()
-        await lsR childPath, visited
-      else
-        visited.push childPath
+  children = await ls path
+  for child in children when !(child in visited)
+    if await isDirectory child
+      await lsR child, visited
+    else
+      visited.push child
   visited
+
+rmR = rmr = (path) ->
+  if (await isDirectory path)
+    paths = await ls path
+    (await rmr _path) for _path in paths
+    await rmDir path
+  else if (await isFile path)
+    await rm path
 
 glob =  (pattern, path) ->
   minimatch.match (await lsR path), (join path, pattern)
