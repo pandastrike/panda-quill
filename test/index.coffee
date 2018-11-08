@@ -9,7 +9,8 @@ import {isReadable, isWritable,
   read, write, rm, stat, exist, exists,
   isFile, isDirectory, readdir, readDir,
   ls, lsR, lsr, glob, mkdir, mkDir, mkdirp, mkDirP,
-  chdir, chDir, rmdir, rmDir, cp, mv, run, print, abort} from "../src/index.js"
+  chdir, chDir, rmdir, rmDir, rmR, rmr,
+  cp, mv, run, print, abort} from "../src/index.js"
 
 testDirectory = resolve "test", "data"
 
@@ -83,7 +84,10 @@ do ->
       assert (join testDirectory, "pandas.txt") in paths
       assert (join testDirectory, "lsr", "pandas.txt") in paths
 
-    test "rmR"
+    test "rmR", ->
+      # minimal test here, just make sure fn is exported
+      assert isFunction rmr
+      assert isFunction rmR
 
     test "glob", ->
        paths = await glob "**/*.txt", testDirectory

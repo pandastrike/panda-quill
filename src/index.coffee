@@ -181,4 +181,5 @@ export {read, write, stat, exist, exists,
   isReadable, isWritable, isFile, isDirectory,
   readdir, readDir, ls, lsR, lsr, glob,
   mkdir, mkDir, mkdirp, mkDirP, chdir, chDir,
-  cp, mv, rm, rmdir, rmDir, run, print, abort}
+  cp, mv, rm, rmdir, rmDir, rmR, rmr,
+  run, print, abort}
