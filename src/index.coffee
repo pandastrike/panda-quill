@@ -3,7 +3,7 @@ import {exec} from "child_process"
 import {join, dirname} from "path"
 import stream from "stream"
 import {curry, binary} from "panda-garden"
-import {isType, isKind, isFunction, isString, isPromise,
+import {isType, isKind, isFunction, isString, isPromise, isBuffer,
   promise, eq} from "panda-parchment"
 import {Method} from "panda-generics"
 import fs from "fs"
@@ -79,6 +79,9 @@ Method.define read, isReadable, (eq "buffer"), readBinaryStream
 
 write = Method.create()
 
+Method.define write, isString, isBuffer,
+  (path, buffer) -> FS.writeFile path, buffer
+
 Method.define write, isString, isString,
   (path, content) -> FS.writeFile path, content
 
@@ -93,8 +96,6 @@ Method.define write, isWritable, isString,
           resolve()
         else
           reject error
-
-# TODO: Add buffer support?
 
 write = curry binary write
 

@@ -53,18 +53,24 @@ do ->
 
     test "write", do ->
 
-      path = join testDirectory, "time.txt"
-      currentTime = Date.now().toString()
+
+
 
       [
 
         test "string", ->
+          path = join testDirectory, "time.txt"
+          currentTime = Date.now().toString()
           await write path, currentTime
           assert (await read path) == currentTime
 
-        test "stream"
+        test "buffer", ->
+          path = join testDirectory, "buffer.txt"
+          sampleText = "Pandas love bamboo."
+          await write path, Buffer.from sampleText
+          assert (await read path) == sampleText
 
-        test "buffer"
+        test "stream"
 
       ]
 
