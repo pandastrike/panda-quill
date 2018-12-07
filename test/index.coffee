@@ -53,9 +53,6 @@ do ->
 
     test "write", do ->
 
-
-
-
       [
 
         test "string", ->
