@@ -5,9 +5,11 @@ import stream from "stream"
 import {curry, binary} from "panda-garden"
 import {isType, isKind, isFunction, isString, isPromise, isBuffer,
   promise, eq} from "panda-parchment"
-import {Method} from "panda-generics"
+import Method from "panda-generics"
 import fs from "fs"
 import minimatch from "minimatch"
+
+{create, define} = Method
 
 FS = do (result = {}) ->
   for key, value of fs
@@ -42,18 +44,20 @@ isReadable = (x) -> x?.read?.call?
 # and do not inherit from stream.writable
 isWritable = (x) -> x?.write?.call?
 
-read = Method.create()
+read = create
+  name: "read"
+  description: "reads data from file, string, or stream"
 
-Method.define read, isString, isString,
+define read, isString, isString,
   (path, encoding) ->
     FS.readFile path, encoding
 
-Method.define read, isString, (path) -> read path, 'utf8'
+define read, isString, (path) -> read path, 'utf8'
 
 readBuffer = (path) -> FS.readFile path
-Method.define read, isString, (eq undefined), readBuffer
-Method.define read, isString, (eq "binary"), readBuffer
-Method.define read, isString, (eq "buffer"), readBuffer
+define read, isString, (eq undefined), readBuffer
+define read, isString, (eq "binary"), readBuffer
+define read, isString, (eq "buffer"), readBuffer
 
 # Stringifies a stream's buffer according to the given encoding.
 readStream = (stream, encoding = "utf8") ->
@@ -71,24 +75,26 @@ readBinaryStream = (stream) ->
     stream.on "end", -> resolve buffer
     stream.on "error", (error) -> reject error
 
-Method.define read, isReadable, readStream
-Method.define read, isReadable, isString, readStream
-Method.define read, isReadable, (eq undefined), readBinaryStream
-Method.define read, isReadable, (eq "binary"), readBinaryStream
-Method.define read, isReadable, (eq "buffer"), readBinaryStream
+define read, isReadable, readStream
+define read, isReadable, isString, readStream
+define read, isReadable, (eq undefined), readBinaryStream
+define read, isReadable, (eq "binary"), readBinaryStream
+define read, isReadable, (eq "buffer"), readBinaryStream
 
-write = Method.create()
+write = create
+  name: "write"
+  description: "writes data to file or stream"
 
-Method.define write, isString, isBuffer,
+define write, isString, isBuffer,
   (path, buffer) -> FS.writeFile path, buffer
 
-Method.define write, isString, isString,
+define write, isString, isString,
   (path, content) -> FS.writeFile path, content
 
-Method.define write, isString, isReadable,
+define write, isString, isReadable,
   (path, stream) -> stream.pipe fs.createWriteStream path
 
-Method.define write, isWritable, isString,
+define write, isWritable, isString,
   (stream, content) ->
     promise (resolve, reject) ->
       stream.write content, "utf-8", (error) ->
@@ -124,14 +130,16 @@ rmR = rmr = (path) ->
 glob =  (pattern, path) ->
   minimatch.match (await lsR path), (join path, pattern)
 
-chDir = chdir = Method.create()
+chDir = chdir = create
+  name: "chdir"
+  description: "Changes the working directory and makes it easy to return."
 
-Method.define chdir, isString, (path) ->
+define chdir, isString, (path) ->
   cwd = process.cwd()
   process.chdir path
   -> process.chdir cwd
 
-Method.define chdir, isString, isFunction, (path, f) ->
+define chdir, isString, isFunction, (path, f) ->
   restore = chdir path
   f()
   restore()
