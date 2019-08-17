@@ -1,6 +1,6 @@
 {
   "name": "panda-quill",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Functional API wrappers for Node APIs",
   "files": [
     "build/npm"
