@@ -1,6 +1,6 @@
 {
   "name": "panda-quill",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Functional API wrappers for Node APIs",
   "files": [
     "build/npm"
@@ -26,8 +26,8 @@
   },
   "devDependencies": {
     "amen": "2.1.0",
-    "panda-9000": "^5.0.0",
-    "panda-builder": "^4.0.11"
+    "panda-9000": "5.0.2",
+    "panda-builder": "4.0.13"
   },
   "engine": "node >= 8.10"
 }
