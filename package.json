@@ -1,6 +1,6 @@
 {
   "name": "panda-quill",
-  "version": "4.0.3",
+  "version": "5.0.0",
   "description": "Functional API wrappers for Node APIs",
   "files": [
     "build/npm"
@@ -20,7 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "minimatch": "^3.0.4",
-    "panda-garden": "^4.0.1",
+    "panda-garden": "^5.0.0",
     "panda-generics": "^6.0.0",
     "panda-parchment": "^5.0.0"
   },
